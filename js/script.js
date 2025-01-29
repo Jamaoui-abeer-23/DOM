@@ -1,59 +1,76 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // Adjust Quantity
-    document.querySelectorAll(".fa-plus-circle").forEach(plusBtn => {
-        plusBtn.addEventListener("click", () => {
-            const quantitySpan = plusBtn.nextElementSibling;
-            const newQuantity = parseInt(quantitySpan.textContent) + 1;
-            quantitySpan.textContent = newQuantity;
-            updateTotal();
-        });
-    });
+// script.js
 
-    document.querySelectorAll(".fa-minus-circle").forEach(minusBtn => {
-        minusBtn.addEventListener("click", () => {
-            const quantitySpan = minusBtn.previousElementSibling;
-            let newQuantity = parseInt(quantitySpan.textContent) - 1;
-            if (newQuantity < 0) newQuantity = 0; // Prevent negative quantities
-            quantitySpan.textContent = newQuantity;
-            updateTotal();
-        });
-    });
+// Select all necessary elements
+const totalPriceElement = document.querySelector('.total');
+const productCards = document.querySelectorAll('.card-body');
 
-    // Delete Item
-    document.querySelectorAll(".fa-trash-alt").forEach(deleteBtn => {
-        deleteBtn.addEventListener("click", () => {
-            const card = deleteBtn.closest(".card-body");
-            card.remove();
-            updateTotal();
-        });
-    });
+let totalPrice = 0;
 
-    // Like Item
-    document.querySelectorAll(".fa-heart").forEach(likeBtn => {
-        likeBtn.addEventListener("click", () => {
-            likeBtn.classList.toggle("liked");
-        });
-    });
+// Function to update the total price
+function updateTotalPrice() {
+    totalPriceElement.textContent = `${totalPrice} $`;
+}
 
-    // Update Total Price
-    function updateTotal() {
-        let total = 0;
-        document.querySelectorAll(".card-body").forEach(card => {
-            const unitPrice = parseFloat(
-                card.querySelector(".unit-price").textContent.replace("$", "").trim()
-            );
-            const quantity = parseInt(card.querySelector(".quantity").textContent);
-            total += unitPrice * quantity;
-        });
-        document.querySelector(".total").textContent = `${total.toFixed(2)} $`;
+// Function to handle quantity change
+function handleQuantityChange(event) {
+    const cardBody = event.target.closest('.card-body');
+    const unitPriceElement = cardBody.querySelector('.unit-price');
+    const quantityElement = cardBody.querySelector('.quantity');
+    const unitPrice = parseFloat(unitPriceElement.textContent.replace(' $', ''));
+    
+    let quantity = parseInt(quantityElement.textContent);
+
+    if (event.target.classList.contains('fa-plus-circle')) {
+        quantity++;
+    } else if (event.target.classList.contains('fa-minus-circle') && quantity > 0) {
+        quantity--;
     }
 
-    // Add "liked" styling (optional)
-    const style = document.createElement("style");
-    style.textContent = `
-        .fa-heart.liked {
-            color: red;
-        }
-    `;
-    document.head.appendChild(style);
+    quantityElement.textContent = quantity;
+
+    // Update total price
+    totalPrice += (event.target.classList.contains('fa-plus-circle') ? unitPrice : -unitPrice);
+    updateTotalPrice();
+}
+
+// Function to handle item deletion
+function handleDelete(event) {
+    const cardBody = event.target.closest('.card-body');
+    const unitPriceElement = cardBody.querySelector('.unit-price');
+    const unitPrice = parseFloat(unitPriceElement.textContent.replace(' $', ''));
+    const quantityElement = cardBody.querySelector('.quantity');
+    const quantity = parseInt(quantityElement.textContent);
+
+    // Update total price
+    totalPrice -= (unitPrice * quantity);
+    updateTotalPrice();
+
+    // Remove the card from the DOM
+    cardBody.remove();
+}
+
+// Function to handle liking an item
+function handleLike(event) {
+    const heartIcon = event.target;
+    heartIcon.classList.toggle('liked'); // Toggle the 'liked' class
+
+    // Change color based on the liked state
+    if (heartIcon.classList.contains('liked')) {
+        heartIcon.style.color = 'red'; // Change to red when liked
+    } else {
+        heartIcon.style.color = ''; // Reset to default when unliked
+    }
+}
+
+// Add event listeners to each product card
+productCards.forEach(card => {
+    const plusButton = card.querySelector('.fa-plus-circle');
+    const minusButton = card.querySelector('.fa-minus-circle');
+    const deleteButton = card.querySelector('.fa-trash-alt');
+    const likeButton = card.querySelector('.fa-heart');
+
+    plusButton.addEventListener('click', handleQuantityChange);
+    minusButton.addEventListener('click', handleQuantityChange);
+    deleteButton.addEventListener('click', handleDelete);
+    likeButton.addEventListener('click', handleLike);
 });
