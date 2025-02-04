@@ -1,5 +1,7 @@
 // script.js
 
+// script.js
+
 // Select all necessary elements
 const totalPriceElement = document.querySelector('.total');
 const productCards = document.querySelectorAll('.card-body');
